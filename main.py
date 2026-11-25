@@ -3,6 +3,8 @@ import sys
 import time
 import random
 
+from game_rules import Ending, select_ending, update_stats
+
 class GameState:
     def __init__(self):
         self.sanity = 100
@@ -10,9 +12,7 @@ class GameState:
         self.attachment = 0
 
     def update(self, sanity_change=0, doubt_change=0, attachment_change=0):
-        self.sanity = max(0, min(100, self.sanity + sanity_change))
-        self.doubt = max(0, min(100, self.doubt + doubt_change))
-        self.attachment = max(0, min(100, self.attachment + attachment_change))
+        update_stats(vars(self), sanity_change, doubt_change, attachment_change)
 
     def __str__(self):
         # For debugging purposes only
@@ -251,11 +251,12 @@ def act_four(state):
     type_text("There is no cafe.")
     
     # Ending logic
-    if state.sanity > 80 and state.doubt > 50:
+    ending = select_ending(state.sanity, state.doubt, state.attachment)
+    if ending is Ending.CLARITY:
         ending_clarity()
-    elif state.attachment > 80:
+    elif ending is Ending.DELUSION:
         ending_delusion()
-    elif state.sanity < 40:
+    elif ending is Ending.COLLAPSE:
         ending_collapse()
     else:
         ending_resignation()

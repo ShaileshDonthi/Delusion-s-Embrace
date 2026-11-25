@@ -19,13 +19,18 @@ def start_game():
 
 @app.route('/choice', methods=['POST'])
 def make_choice():
-    data = request.json
-    choice_index = data.get('choice_index')
-    
     if 'game_state' not in session:
         return jsonify({"error": "No game session"}), 400
-        
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Expected a JSON object"}), 400
+
     state = session['game_state']
+    choice_index = data.get('choice_index')
+    if not engine.is_valid_choice(state, choice_index):
+        return jsonify({"error": "Invalid choice for the current step"}), 400
+
     response = engine.process_step(state, choice_index)
     session.modified = True
     

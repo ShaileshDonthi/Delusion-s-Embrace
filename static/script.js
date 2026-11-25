@@ -3,11 +3,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const choicesContainer = document.getElementById('choices-container');
     let isTyping = false;
 
-    // Start the game
-    fetch('/start', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => handleResponse(data))
-        .catch(err => console.error('Error starting game:', err));
+    startGame();
+
+    function startGame() {
+        return fetch('/start', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => handleResponse(data))
+            .catch(err => console.error('Error starting game:', err));
+    }
 
     function handleResponse(data) {
         // Clear previous content ONLY if it's the intro (restart)
@@ -29,10 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             typeWriterSequence(data.text, 0, () => {
-                showChoices(data.choices);
+                showChoices(data.choices, data.action);
             });
         } else {
-            showChoices(data.choices);
+            showChoices(data.choices, data.action);
         }
     }
 
@@ -83,14 +86,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showChoices(choices) {
+    function showChoices(choices, action) {
         if (!choices || choices.length === 0) return;
 
         choices.forEach((choiceText, index) => {
             const btn = document.createElement('button');
             btn.classList.add('choice-btn');
             btn.textContent = choiceText;
-            btn.onclick = () => makeChoice(index, choiceText);
+            btn.onclick = () => {
+                if (action === 'restart') {
+                    btn.disabled = true;
+                    startGame();
+                } else {
+                    makeChoice(index, choiceText);
+                }
+            };
             choicesContainer.appendChild(btn);
         });
 
